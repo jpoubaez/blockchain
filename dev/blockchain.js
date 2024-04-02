@@ -3,6 +3,7 @@ const sha256 = require('sha256'); // importem llibreria pel hash
 function Blockchain () {
     this.chain = [];
     this.pendingTransactions = [];
+    this.createNewBlock(100,'0','0'); // hi posem lo que vulguem
 }
 
 Blockchain.prototype.createNewBlock = function (nonce, previousBlockHash, hash) { 
