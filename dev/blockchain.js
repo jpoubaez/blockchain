@@ -1,3 +1,5 @@
+const sha256 = require('sha256'); // importem llibreria pel hash
+
 function Blockchain () {
     this.chain = [];
     this.pendingTransactions = [];
@@ -24,6 +26,11 @@ Blockchain.prototype.getlastBlock = function () {
 
 }
 
+Blockchain.prototype.getlastBlockHash = function () { 
+    return this.chain[this.chain.length - 1].hash;
+
+}
+
 Blockchain.prototype.createNewTransaction = function (amount, sender, recipient) {
     const newTransaction = {
         amount: amount,
@@ -32,6 +39,12 @@ Blockchain.prototype.createNewTransaction = function (amount, sender, recipient)
     };
     this.pendingTransactions.push(newTransaction);
     return this.getlastBlock()['index'] + 1;
+}
+
+Blockchain.prototype.hashBlock = function(previousBlockHash, currentBlockData, nonce) {
+    const dataAsString = previousBlockHash + nonce.toString() + JSON.stringify( currentBlockData);
+    const hash = sha256(dataAsString);
+    return hash;
 }
 
 module.exports = Blockchain; // per a poder-ho veure i utilitzar en altres fitxers
