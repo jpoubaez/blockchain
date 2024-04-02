@@ -28,7 +28,9 @@ const currentBlockData = [
     }   
 ];
 const previousBlockHash = bitcoin.getlastBlockHash();
-const nonce = 100;
+const nonce = bitcoin.proofOfWork(previousBlockHash, currentBlockData);
+console.log(nonce);
+
 const nouHash = bitcoin.hashBlock(previousBlockHash, currentBlockData, nonce);
 console.log(nouHash);
 
