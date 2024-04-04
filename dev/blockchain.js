@@ -22,7 +22,7 @@ Blockchain.prototype.createNewBlock = function (nonce, previousBlockHash, hash) 
     return newBlock;
 }
 
-Blockchain.prototype.getlastBlock = function () { 
+Blockchain.prototype.getLastBlock = function () { 
     return this.chain[this.chain.length - 1];
 
 }
@@ -39,7 +39,7 @@ Blockchain.prototype.createNewTransaction = function (amount, sender, recipient)
         recipient: recipient,
     };
     this.pendingTransactions.push(newTransaction);
-    return this.getlastBlock()['index'] + 1;
+    return this.getLastBlock()['index'] + 1;
 }
 
 Blockchain.prototype.hashBlock = function(previousBlockHash, currentBlockData, nonce) {

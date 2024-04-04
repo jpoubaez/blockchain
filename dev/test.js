@@ -8,7 +8,7 @@ function crearBloc (dadesNoves) {
 		bitcoin.createNewTransaction(dadesNoves[i].amount,dadesNoves[i].sender,dadesNoves[i].recipient);
 	}
 	
-	let previousBlockHash = bitcoin.getlastBlockHash();
+	let previousBlockHash = bitcoin.getLastBlockHash();
 	let nonce = bitcoin.proofOfWork(previousBlockHash, dadesNoves);
 	let nouHash = bitcoin.hashBlock(previousBlockHash, dadesNoves, nonce);
 	bitcoin.createNewBlock(nonce,previousBlockHash,nouHash); // per a provar
@@ -69,5 +69,5 @@ currentBlockData = [
 crearBloc(currentBlockData);
 
 console.log(bitcoin); // la printo tota
-console.log(bitcoin.getlastBlock());
+console.log(bitcoin.getLastBlock());
 
