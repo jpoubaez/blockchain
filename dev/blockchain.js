@@ -1,8 +1,14 @@
 const sha256 = require('sha256'); // importem llibreria pel hash
 
+const currentNodeUrl = process.argv[3];  // rebre la url
+
 function Blockchain () {
     this.chain = [];
     this.pendingTransactions = [];
+
+    this.currentNodeUrl = currentNodeUrl;
+    this.networkNodes = [];
+
     this.createNewBlock(100,'0','0'); // hi posem lo que vulguem
 }
 
