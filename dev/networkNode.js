@@ -55,33 +55,40 @@ app.post('/register-and-broadcast-node', function(req, res) { // afegim el nou n
     const regNodesPromises = []; // hi posarem tots els que tenim registrats i necessiten les dades del nou
     bitcoin.networkNodes.forEach(networkNodeUrl => { // difondre'l cap a tothom excepte el nou
         // enviar a cada node ja existent una peticio register-node amb les dades del nou
-        bitcoin.networkNodes.forEach(networkNodeUrl => {
-            const requestOptions = { // les dades del request
-                uri: networkNodeUrl + '/register-node', // diferent per a cada destí
-                method: 'POST',
-                body: { newNodeUrl: newNodeUrl }, // tots reben lo mateix: el nou
-                json: true
-            }
+        const requestOptions = { // les dades del request
+            uri: networkNodeUrl + '/register-node', // diferent per a cada destí
+            method: 'POST',
+            body: { newNodeUrl: newNodeUrl }, // tots reben lo mateix: el nou
+            json: true // volem json
         }
-        regNodesPromises.push(rp(requestOptions)); // preparat per a cada node ja existent
+        
+        regNodesPromises.push(rp(requestOptions)); // preparant promise individual per a cada node ja existent
     }; // end of difondre'l cap a tothom excepte el nou
 
-    Promise.all(regNodesPromises) // enviem a tots
-    .then(data => { // si ha anat bé, li diem al nou la info dels nodes ja existents
+    Promise.all(regNodesPromises) // enviem a tots les promises preparades
+    .then(data => { // si ha anat bé i ha acabat, li diem al nou la info dels nodes ja existents. Data és resposta rebuda
         const bulkRegisterOptions = { 
             uri: newNodeUrl + '/register-nodes-bulk'  
             method: 'POST',
-            body: {allNetworkNodes: [...bitcoin.networkNodes,
+            body: {allNetworkNodes: [...bitcoin.networkNodes, // ... és un operador (spread) per a que agafi el contingut de l'array
             bitcoin.currentNodeUrl]} 
-            json:true
+            json:true // volem json
         }
 
-        return rp(bulkRegisterOptions);
+        return rp(bulkRegisterOptions); // ens prepara la promise i l'enviem amb return
     }) // si ha anat bé, missatge exit
-    .then(data => {
+    .then(data => { // data és la resposta rebuda, per tant ha acabat
         res.json({ note: 'New node registered with network successfully.' });
     });
 };
+
+app.post('/register-node', function(req, res) {
+    const newNodeUrl = req.body.newNodeUrl; // rebem uri del nou
+    const nodeNotAlreadyPresent = bitcoin.networkNodes.indexOf(newNodeUrl) == -1; // si no el tenim, l'hi posem
+    const notCurrentNode = bitcoin.currentNodeUrl !== newNodeUrl; // mirem que no siguem nosaltres!!
+    if (nodeNotAlreadyPresent && notCurrentNode) bitcoin.networkNodes.push(newNodeUrl);
+    res.json({ note: 'New node registered successfully.' }); // contestem
+});
 
 app.listen(port, function(){ // ara escoltem pel port que ens passin
     console.log(`listening per el port ${port} ...`); 
