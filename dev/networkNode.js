@@ -63,15 +63,15 @@ app.post('/register-and-broadcast-node', function(req, res) { // afegim el nou n
         }
         
         regNodesPromises.push(rp(requestOptions)); // preparant promise individual per a cada node ja existent
-    }; // end of difondre'l cap a tothom excepte el nou
+    }); // end of difondre'l cap a tothom excepte el nou
 
     Promise.all(regNodesPromises) // enviem a tots les promises preparades
     .then(data => { // si ha anat bé i ha acabat, li diem al nou la info dels nodes ja existents. Data és resposta rebuda
         const bulkRegisterOptions = { 
-            uri: newNodeUrl + '/register-nodes-bulk'  
+            uri: newNodeUrl + '/register-nodes-bulk',  
             method: 'POST',
             body: {allNetworkNodes: [...bitcoin.networkNodes, // ... és un operador (spread) per a que agafi el contingut de l'array
-            bitcoin.currentNodeUrl]} 
+            bitcoin.currentNodeUrl]}, 
             json:true // volem json
         }
 
@@ -80,7 +80,7 @@ app.post('/register-and-broadcast-node', function(req, res) { // afegim el nou n
     .then(data => { // data és la resposta rebuda, per tant ha acabat
         res.json({ note: 'New node registered with network successfully.' });
     });
-};
+});
 
 app.post('/register-node', function(req, res) {
     const newNodeUrl = req.body.newNodeUrl; // rebem uri del nou
