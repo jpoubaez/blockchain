@@ -90,6 +90,16 @@ app.post('/register-node', function(req, res) {
     res.json({ note: 'New node registered successfully.' }); // contestem
 });
 
+app.post('/register-nodes-bulk', function(req, res) {
+    const allNetworkNodes = req.body.allNetworkNodes; // l'array amb les URLs dels nodes ja existents
+    allNetworkNodes.forEach(networkNodeUrl => { // iterem i l'afegim a l'array del blockchain amb els nodes
+        const nodeNotAlreadyPresent = bitcoin.networkNodes.indexOf(networkNodeUrl) == -1; // Vigilem que no hi sigui
+        const notCurrentNode = bitcoin.currentNodeUrl !== networkNodeUrl; //vigilem que no siguem nosaltres mateixos
+        if (nodeNotAlreadyPresent && notCurrentNode) bitcoin.networkNodes.push(networkNodeUrl);
+    });
+    res.json({ note: 'Bulk registration successful.' }); // contestem
+});
+
 app.listen(port, function(){ // ara escoltem pel port que ens passin
     console.log(`listening per el port ${port} ...`); 
 
