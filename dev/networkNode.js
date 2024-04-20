@@ -19,10 +19,34 @@ app.get('/blockchain', function(req, res) {
 });
 
 app.post('/transaction', function(req, res) {
-    const blockIndex = bitcoin.createNewTransaction(req.body.amount,
-    req.body.sender, req.body.recipient) 
-    res.json({ note:`Transaction will be added in block
-    ${blockIndex}.`});
+    //const blockIndex = bitcoin.createNewTransaction(req.body.amount,
+    //req.body.sender, req.body.recipient) // abans es creava i posava a la cua cridant això
+    const newTransaction = req.body; // posem aquó directament a la cua
+    const blockIndex = bitcoin.addTransactionToPendingTransactions(newTransaction);
+    res.json({ note:`Transaction will be added in block ${blockIndex}.`});  
+});
+
+app.post('/transaction/broadcast', function(req, res) {
+    // rebem la transacció del post i l'afegim a la nostra cua de pendents
+    const newTransaction = bitcoin.createNewTransaction(req.body.amount, req.body.sender, req.body.recipient);
+    bitcoin.addTransactionToPendingTransactions(newTransaction);
+
+    const requestPromises = [];
+    bitcoin.networkNodes.forEach(networkNodeUrl => {
+        const requestOptions = { // opcions de la request per a cada node
+            uri: networkNodeUrl + '/transaction',
+            method: 'POST',
+            body: newTransaction,
+            json: true
+        };
+
+        requestPromises.push(rp(requestOptions)); // fem la request i la posem a la pila
+    });
+
+    Promise.all(requestPromises)  // Les enviem 
+    .then(data => {
+        res.json({ note: 'Transaction created and broadcast successfully.' });
+    });
 });
 
 app.get('/mine', function(req, res) {

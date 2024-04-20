@@ -2,6 +2,8 @@ const sha256 = require('sha256'); // importem llibreria pel hash
 
 const currentNodeUrl = process.argv[3];  // rebre la url
 
+const uuid = require('uuid/v1');
+
 function Blockchain () {
     this.chain = [];
     this.pendingTransactions = [];
@@ -38,15 +40,23 @@ Blockchain.prototype.getlastBlockHash = function () {
 
 }
 
+
 Blockchain.prototype.createNewTransaction = function (amount, sender, recipient) {
     const newTransaction = {
         amount: amount,
         sender: sender,
         recipient: recipient,
+        transactionId: uuid().split('-').join('') // treu els -
     };
-    this.pendingTransactions.push(newTransaction);
-    return this.getLastBlock()['index'] + 1;
+    //this.pendingTransactions.push(newTransaction); aixo abans, ara no cal
+    //return this.getLastBlock()['index'] + 1;
+    return newTransaction; // ara només la crea i no la posa a pendingTransacions
 }
+
+Blockchain.prototype.addTransactionToPendingTransactions = function(transactionObj) {
+    this.pendingTransactions.push(transactionObj);
+    return this.getLastBlock()['index'] + 1;
+};
 
 Blockchain.prototype.hashBlock = function(previousBlockHash, currentBlockData, nonce) {
     const dataAsString = previousBlockHash + nonce.toString() + JSON.stringify( currentBlockData);
