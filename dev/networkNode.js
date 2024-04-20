@@ -53,8 +53,6 @@ app.get('/mine', function(req, res) {
 
     const lastBlock = bitcoin.getLastBlock();
     const previousBlockHash = lastBlock['hash'];
-
-    bitcoin.createNewTransaction(12.5, "00", nodeAddress); // recompensa, a quina adreça?? la creem
     
     const currentBlockData = {
         transactions: bitcoin.pendingTransactions,
@@ -64,12 +62,66 @@ app.get('/mine', function(req, res) {
     const blockHash = bitcoin.hashBlock(previousBlockHash, currentBlockData, nonce);
     const newBlock = bitcoin.createNewBlock(nonce, previousBlockHash, blockHash);
     
+    const requestPromises = []; // enviem el nou block a l'endpoint /receive-new-block de tots els altres
+    bitcoin.networkNodes.forEach(networkNodeUrl => {
+        const requestOptions = {
+            uri: networkNodeUrl + '/receive-new-block',
+            method: 'POST',
+            body: { newBlock: newBlock },
+            json: true
+        };
+
+        requestPromises.push(rp(requestOptions));
+    });
+
+    Promise.all(requestPromises)
+    .then(data => {
+        const requestOptions = {
+            uri: bitcoin.currentNodeUrl + '/transaction/broadcast',
+            method: 'POST',
+            body: {
+                amount: 12.5,
+                sender: "00",
+                recipient: nodeAddress
+            },
+            json: true
+        };
+
+        return rp(requestOptions);
+    })
+    .then(data => {
+        res.json({
+            note: "New block mined & broadcast successfully",
+            block: newBlock
+        });
+    });
 
     res.json({
         note: "New block mined successfully",
         block: newBlock
     });
 
+});
+
+app.post('/receive-new-block', function(req, res) {
+    const newBlock = req.body.newBlock;
+    const lastBlock = bitcoin.getLastBlock();
+    const correctHash = lastBlock.hash === newBlock.previousBlockHash; // el meu anterior i l'anterior rebut ok
+    const correctIndex = lastBlock['index'] + 1 === newBlock['index']; // index que toca ara és el que he rebut ok
+
+    if (correctHash && correctIndex) {
+        bitcoin.chain.push(newBlock);
+        bitcoin.pendingTransactions = []; // el que estava pendent, ja ho ha minat l'altre node, netegem
+        res.json({
+            note: 'New block received and accepted.',
+            newBlock: newBlock
+        });
+    } else {
+        res.json({
+            note: 'New block rejected.',
+            newBlock: newBlock
+        });
+    }
 });
 
 app.post('/register-and-broadcast-node', function(req, res) { // afegim el nou node si no el teníem a networkNodes[]
